@@ -1,0 +1,8 @@
+id: bye
+activities:
+  - send-message:
+      id: complete
+      on:
+        message-received:
+          content: bye
+      content: Bye

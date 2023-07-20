@@ -1,0 +1,8 @@
+id: hello
+activities:
+  - send-message:
+      id: init
+      on:
+        message-received:
+          content: hello
+      content: Hello
