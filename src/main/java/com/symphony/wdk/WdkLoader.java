@@ -1,6 +1,7 @@
 package com.symphony.wdk;
 
 import com.symphony.bdk.workflow.api.v1.dto.SwadlView;
+import com.symphony.bdk.workflow.api.v1.dto.VersionedWorkflowView;
 import com.symphony.bdk.workflow.engine.executor.SecretKeeper;
 import com.symphony.bdk.workflow.management.WorkflowManagementService;
 
@@ -15,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,14 +36,21 @@ public class WdkLoader {
     // Deploy workflows
     log.info("Loading workflows from: {}", path);
     for (String file : listFiles(path)) {
-      if (!file.toLowerCase().endsWith(".swadl.yaml")) {
+      String name = file.toLowerCase();
+      if (!name.endsWith(".swadl.yaml")) {
         continue;
       }
       log.info("Loading: {}", file);
       Path swadlPath = Path.of(path + "/" + file);
       String swadl = String.join("\n", Files.readAllLines(swadlPath));
       SwadlView swadlView = SwadlView.builder().description("WDK Loader").swadl(swadl).build();
-      managementService.deploy(swadlView);
+      Optional<VersionedWorkflowView> existing =
+          managementService.get(name.substring(0, name.indexOf(".swadl.yaml")));
+      if (existing.isPresent() && existing.get().getSwadl().equals(swadl)) {
+        log.info("Ignoring identical deployment");
+      } else {
+        managementService.deploy(swadlView);
+      }
     }
 
     // Deploy secrets
@@ -52,6 +61,9 @@ public class WdkLoader {
         log.info("Loading secret: {}", e.getKey());
         String key = e.getKey().substring(prefix.length());
         byte[] secret = e.getValue().getBytes(StandardCharsets.UTF_8);
+        if (secretKeeper.get(key) != null) {
+          secretKeeper.remove(key);
+        }
         secretKeeper.save(key, secret);
       });
 
