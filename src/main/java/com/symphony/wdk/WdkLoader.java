@@ -34,6 +34,9 @@ public class WdkLoader {
     // Deploy workflows
     log.info("Loading workflows from: {}", path);
     for (String file : listFiles(path)) {
+      if (!file.toLowerCase().endsWith(".swadl.yaml")) {
+        continue;
+      }
       log.info("Loading: {}", file);
       Path swadlPath = Path.of(path + "/" + file);
       String swadl = String.join("\n", Files.readAllLines(swadlPath));
@@ -42,11 +45,12 @@ public class WdkLoader {
     }
 
     // Deploy secrets
+    String prefix = "WDK_SECRET_";
     System.getenv().entrySet().stream()
-      .filter(e -> e.getKey().startsWith("WDK_"))
+      .filter(e -> e.getKey().startsWith(prefix))
       .forEach(e -> {
         log.info("Loading secret: {}", e.getKey());
-        String key = e.getKey().substring(4);
+        String key = e.getKey().substring(prefix.length());
         byte[] secret = e.getValue().getBytes(StandardCharsets.UTF_8);
         secretKeeper.save(key, secret);
       });

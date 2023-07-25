@@ -14,5 +14,5 @@ This allows secrets to be used in production when API-based deployments are not 
         monitoring-token: mysecretpassphrase
         management-token: mysecretpassphrase
     ````
-3. Add secrets via environment variables prefixed with `WDK_` in the runtime location 
-   - e.g. adding a `WDK_secretToken` environment variable with a `abc` value will create a WDK secret at startup named `secretToken` with a value of `abc` 
+3. Add secrets via environment variables prefixed with `WDK_SECRET_` in the runtime location 
+   - e.g. adding a `WDK_SECRET_secretToken` environment variable with a `abc` value will create a WDK secret at startup named `secretToken` with a value of `abc` 
